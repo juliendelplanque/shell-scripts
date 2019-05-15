@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # This script is based on the documentation available at [1].
 #
 # [1]: https://git-scm.com/book/en/v2/Git-Basics-Tagging
