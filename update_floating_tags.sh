@@ -4,6 +4,18 @@
 #
 # [1]: https://git-scm.com/book/en/v2/Git-Basics-Tagging
 
+print_usage_string(){
+cat << END
+Usage: update_floating_tags.sh {show|generate|help} <tag_name> <remote_name>
+Commands:
+  - show : Show which tags will be updated.
+  - generate : Generate the git commands allowing one to update floating tags.
+  - help : Show this help message and exit.
+Parameters:
+  - <tag_name> : is the name of the tag for which one want to update floating tags.
+  - <remote_name> : is the name of the remote for which these tags will be updated.
+END
+}
 echo_create_tag(){
   # Args
   local tag_name="$1"
@@ -134,6 +146,28 @@ main(){
   local command="$1"
   local release_tag="$2"
   local remote="$3"
+
+  if [[ $command = "help" ]]
+  then
+    print_usage_string || return 1
+    return 0
+  fi
+
+  # Checking if arguments required for other commands are set.
+  if [[ -z "$release_tag" ]]
+  then
+    echo "A tag needs to be specified for this script to work."
+    print_usage_string || return 1
+    return 1
+  fi
+
+  if [[ -z "$remote" ]]
+  then
+    echo "A remote needs to be specified for this script to work."
+    print_usage_string || return 1
+    return 1
+  fi
+
   if [[ $command = "show" ]]
   then
     show "$release_tag" || return 1
