@@ -96,18 +96,14 @@ generate_script(){
   local directory="$1"
   local tool_name="$2"
   local script_file="$directory/$tool_name"
-  cat >> "$script_file" <<EOL
-#!/usr/bin/env bash
-# some magic to find out the real location of this script dealing with symlinks
-DIR=`readlink "\$0"` || DIR="\$0";
-DIR=`dirname "\$DIR"`;
-cd "\$DIR"
-DIR=`pwd`
-cd - > /dev/null
-# disable parameter expansion to forward all arguments unprocessed to the VM
-set -f
-# run the VM and pass along all arguments as is
-EOL
+  echo '#!/usr/bin/env bash' >> "$script_file"
+  echo 'DIR=`readlink "$0"` || DIR="$0";' >> "$script_file"
+  echo 'DIR=`dirname "$DIR"`;' >> "$script_file"
+  echo 'cd "$DIR"' >> "$script_file"
+  echo 'DIR=`pwd`' >> "$script_file"
+  echo 'cd - > /dev/null' >> "$script_file"
+  echo 'set -f' >> "$script_file"
+  echo '# run the VM and pass along all arguments as is' >> "$script_file"
   echo '"$DIR"/"pharo-vm/Pharo.app/Contents/MacOS/Pharo" --headless "$DIR/Pharo.image" "'$tool_name'" "$@"' >> "$script_file"
   chmod u+x "$script_file"
 }
