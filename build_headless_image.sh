@@ -6,21 +6,22 @@ set -o pipefail
 set -C
 set -u
 
-# Enable bash's extended globbing features. ------------------------------------
-shopt -s extglob
-
 # Constants --------------------------------------------------------------------
-
-# Image, sources and VM
+## Image, sources and VM
 IMAGE_VERSION="70-minimal"
 VM_VERSION="vm70"
 SOURCES_VERSION="V60"
-# URLs
+## URLs
+PHARO_URL="github://pharo-project/pharo:Pharo7.0/src"
 TONEL_URL="github://pharo-vcs/tonel"
-# Baselines
+## Baselines
+PHARO_BOOSTRAP_BASELINE="BaselineOfPharoBootstrap"
+UFFI_BASELINE="BaselineOfUnifiedFFI"
 TONEL_BASELINE="BaselineOfTonel"
-# Commands
-METACELLO_CMD="./pharo Pharo.image metacello"
+## Commands
+PHARO_CMD="./pharo Pharo.image"
+METACELLO_CMD="$PHARO_CMD metacello"
+EVAL_CMD="$PHARO_CMD eval --save"
 
 # Error codes ------------------------------------------------------------------
 SETUP_FAILED="1"
@@ -48,6 +49,14 @@ download_sources(){
   wget "http://files.pharo.org/sources/Pharo$sources_version.sources"
 }
 
+prepare_image(){
+  eval "$EVAL_CMD" 'NoChangesLog install.'
+  eval "$EVAL_CMD" 'NoPharoFilesOpener install.'
+  eval "$EVAL_CMD" 'FFICompilerPlugin install.'
+  eval "$EVAL_CMD" '5 timesRepeat: [ Smalltalk garbageCollect ].'
+  eval "$EVAL_CMD" 'PharoCommandLineHandler forcePreferencesOmission: true.'
+}
+
 metacello_install(){
   [[ $# -eq 3 ]] || "Usage: ${FUNCNAME[0]} url baseline groups"
   local url="$1" baseline="$2" groups="$3"
@@ -70,8 +79,14 @@ setup(){
 
   # Install Tonel (required for projects in Tonel format).
   metacello_install "$TONEL_URL" "$TONEL_BASELINE" "core"
+  # Install KernelGroup
+  metacello_install "$PHARO_URL" "$PHARO_BOOSTRAP_BASELINE" "KernelGroup"
+  # Install UFFI (required for os stuff).
+  metacello_install "$PHARO_URL" "$UFFI_BASELINE" "minimal"
   # Install jpp.
   metacello_install "$project_repository" "$project_baseline" "$project_groups"
+
+  prepare_image
 
   # Go back to original directory.
   cd ..
@@ -82,9 +97,9 @@ clean(){
   local directory_to_clean="$1"
   local temp_dir="$directory_to_clean.tmp"
   mkdir "$temp_dir"
-  mv "$directory_to_clean/Pharo.changes" "$temp_dir"
+  #mv "$directory_to_clean/Pharo.changes" "$temp_dir"
+  #mv $directory_to_clean/PharoV*.sources "$temp_dir"
   mv "$directory_to_clean/Pharo.image" "$temp_dir"
-  mv $directory_to_clean/PharoV*.sources "$temp_dir"
   mv "$directory_to_clean/pharo-vm" "$temp_dir"
   rm -rf $directory_to_clean/*
   mv $temp_dir/* "$directory_to_clean"
@@ -133,4 +148,5 @@ main(){
   build $@
 }
 
-main "jpp" "github://juliendelplanque/jpp/src" "BaselineOfJSONPreprocessor" "core"
+# Execute main -----------------------------------------------------------------
+main $@
