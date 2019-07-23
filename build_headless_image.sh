@@ -29,8 +29,13 @@ METACELLO_INSTALL_FAILED="2"
 
 # Functions --------------------------------------------------------------------
 
+function die() {
+    echo "$@" 1>&2
+    exit 1
+}
+
 download_image(){
-  [[ $# -eq 1 ]] || "Usage: ${FUNCNAME[0]} image_version"
+  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} image_version"
   local image_version="$1"
   set +e # Hack, there is a problem in the script downloaded, a mv call fails
   curl "https://get.pharo.org/$image_version" | bash
@@ -38,18 +43,19 @@ download_image(){
 }
 
 download_vm(){
-  [[ $# -eq 1 ]] || "Usage: ${FUNCNAME[0]} vm_version"
+  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} vm_version"
   local vm_version="$1"
   curl "https://get.pharo.org/$vm_version" | bash
 }
 
 download_sources(){
-  [[ $# -eq 1 ]] || "Usage: ${FUNCNAME[0]} sources_version"
+  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} sources_version"
   local sources_version="$1"
   wget "http://files.pharo.org/sources/Pharo$sources_version.sources"
 }
 
 prepare_image(){
+  [[ $# -eq 0 ]] || die "Usage: ${FUNCNAME[0]}"
   eval "$EVAL_CMD" 'NoChangesLog install.'
   eval "$EVAL_CMD" 'NoPharoFilesOpener install.'
   eval "$EVAL_CMD" 'FFICompilerPlugin install.'
@@ -58,14 +64,14 @@ prepare_image(){
 }
 
 metacello_install(){
-  [[ $# -eq 3 ]] || "Usage: ${FUNCNAME[0]} url baseline groups"
+  [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0]} url baseline groups"
   local url="$1" baseline="$2" groups="$3"
   eval "$METACELLO_CMD install $url $baseline --groups=$groups" \
     || exit "$METACELLO_INSTALL_FAILED"
 }
 
 setup(){
-  [[ $# -eq 4 ]] || "Usage: ${FUNCNAME[0]} project_name project_repository project_baseline project_groups"
+  [[ $# -eq 4 ]] || die "Usage: ${FUNCNAME[0]} project_name project_repository project_baseline project_groups"
   local project_name="$1" project_repository="$2" project_baseline="$3" \
   project_groups="$4"
   # Create directory and enter it.
@@ -93,7 +99,7 @@ setup(){
 }
 
 clean(){
-  [[ $# -eq 1 ]] || "Usage: ${FUNCNAME[0]} directory_to_clean"
+  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} directory_to_clean"
   local directory_to_clean="$1"
   local temp_dir="$directory_to_clean.tmp"
   mkdir "$temp_dir"
@@ -107,7 +113,7 @@ clean(){
 }
 
 generate_script(){
-  [[ $# -eq 2 ]] || "Usage: ${FUNCNAME[0]} directory tool_name"
+  [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} directory tool_name"
   local directory="$1"
   local tool_name="$2"
   local script_file="$directory/$tool_name"
@@ -124,7 +130,7 @@ generate_script(){
 }
 
 print_final_help(){
-  [[ $# -eq 1 ]] || "Usage: ${FUNCNAME[0]} tool_name"
+  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} tool_name"
   local tool_name="$1"
   # Help user to set-up.
   echo "Installation is complete, to make jpp available from everywhere, add it to the PATH."
@@ -135,7 +141,7 @@ print_final_help(){
 }
 
 build(){
-  [[ $# -eq 4 ]] || "Usage: ${FUNCNAME[0]} tool_name repository_url baseline groups"
+  [[ $# -eq 4 ]] || die "Usage: ${FUNCNAME[0]} tool_name repository_url baseline groups"
   local tool_name="$1" repository_url="$2" baseline="$3" groups="$4"
   local install_directory="$tool_name"
   setup "$install_directory" "$repository_url" "$baseline" "$groups"
