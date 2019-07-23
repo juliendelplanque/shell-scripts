@@ -35,23 +35,29 @@ function die() {
 }
 
 download_image(){
-  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} image_version"
-  local image_version="$1"
+  [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} image_version directory"
+  local image_version="$1" directory="$2"
+  cd "$directory"
   set +e # Hack, there is a problem in the script downloaded, a mv call fails
   curl "https://get.pharo.org/$image_version" | bash
   set -e # Back to sane mode
+  cd ..
 }
 
 download_vm(){
-  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} vm_version"
-  local vm_version="$1"
+  [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} vm_version directory"
+  local vm_version="$1" directory="$2"
+  cd "$directory"
   curl "https://get.pharo.org/$vm_version" | bash
+  cd ..
 }
 
 download_sources(){
-  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} sources_version"
-  local sources_version="$1"
+  [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} sources_version directory"
+  local sources_version="$1" directory="$2"
+  cd "$directory"
   wget "http://files.pharo.org/sources/Pharo$sources_version.sources"
+  cd ..
 }
 
 prepare_image(){
@@ -76,12 +82,13 @@ setup(){
   project_groups="$4"
   # Create directory and enter it.
   mkdir "$project_name" || exit "$SETUP_FAILED"
-  cd "$project_name"
 
   # Download image, vm and sources files.
-  download_image $IMAGE_VERSION
-  download_vm $VM_VERSION
-  download_sources "$SOURCES_VERSION"
+  download_image "$IMAGE_VERSION" "$project_name"
+  download_vm "$VM_VERSION" "$project_name"
+  download_sources "$SOURCES_VERSION" "$project_name"
+
+  cd "$project_name"
 
   # Install Tonel (required for projects in Tonel format).
   metacello_install "$TONEL_URL" "$TONEL_BASELINE" "core"
@@ -103,8 +110,6 @@ clean(){
   local directory_to_clean="$1"
   local temp_dir="$directory_to_clean.tmp"
   mkdir "$temp_dir"
-  #mv "$directory_to_clean/Pharo.changes" "$temp_dir"
-  #mv $directory_to_clean/PharoV*.sources "$temp_dir"
   mv "$directory_to_clean/Pharo.image" "$temp_dir"
   mv "$directory_to_clean/pharo-vm" "$temp_dir"
   rm -rf $directory_to_clean/*
