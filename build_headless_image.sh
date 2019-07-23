@@ -20,12 +20,6 @@ UFFI_BASELINE="BaselineOfUnifiedFFI"
 TONEL_BASELINE="BaselineOfTonel"
 ## Commands
 PHARO_CMD="./pharo Pharo.image"
-METACELLO_CMD="$PHARO_CMD metacello"
-EVAL_CMD="$PHARO_CMD eval --save"
-
-# Error codes ------------------------------------------------------------------
-SETUP_FAILED="1"
-METACELLO_INSTALL_FAILED="2"
 
 # Functions --------------------------------------------------------------------
 
@@ -60,20 +54,25 @@ download_sources(){
   cd ..
 }
 
-prepare_image(){
-  [[ $# -eq 0 ]] || die "Usage: ${FUNCNAME[0]}"
-  eval "$EVAL_CMD" 'NoChangesLog install.'
-  eval "$EVAL_CMD" 'NoPharoFilesOpener install.'
-  eval "$EVAL_CMD" 'FFICompilerPlugin install.'
-  eval "$EVAL_CMD" '5 timesRepeat: [ Smalltalk garbageCollect ].'
-  eval "$EVAL_CMD" 'PharoCommandLineHandler forcePreferencesOmission: true.'
+pharo_eval(){
+  [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} pharo_expression"
+  local pharo_expression="$1"
+  eval "$PHARO_CMD eval --save $pharo_expression"
 }
 
 metacello_install(){
   [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0]} url baseline groups"
   local url="$1" baseline="$2" groups="$3"
-  eval "$METACELLO_CMD install $url $baseline --groups=$groups" \
-    || exit "$METACELLO_INSTALL_FAILED"
+  eval "$PHARO_CMD metacello install $url $baseline --groups=$groups"
+}
+
+prepare_image(){
+  [[ $# -eq 0 ]] || die "Usage: ${FUNCNAME[0]}"
+  pharo_eval 'NoChangesLog install.'
+  pharo_eval 'NoPharoFilesOpener install.'
+  pharo_eval 'FFICompilerPlugin install.'
+  pharo_eval '5 timesRepeat: [ Smalltalk garbageCollect ].'
+  pharo_eval 'PharoCommandLineHandler forcePreferencesOmission: true.'
 }
 
 setup(){
@@ -81,7 +80,7 @@ setup(){
   local project_name="$1" project_repository="$2" project_baseline="$3" \
   project_groups="$4"
   # Create directory and enter it.
-  mkdir "$project_name" || exit "$SETUP_FAILED"
+  mkdir "$project_name"
 
   # Download image, vm and sources files.
   download_image "$IMAGE_VERSION" "$project_name"
