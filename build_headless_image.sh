@@ -29,7 +29,7 @@ function die() {
     exit 1
 }
 
-download_image(){
+function download_image(){
   [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} image_version directory"
   local image_version="$1" directory="$2"
   cd "$directory"
@@ -41,7 +41,7 @@ download_image(){
   cd ..
 }
 
-download_vm(){
+function download_vm(){
   [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} vm_version directory"
   local vm_version="$1" directory="$2"
   cd "$directory"
@@ -49,7 +49,7 @@ download_vm(){
   cd ..
 }
 
-download_sources(){
+function download_sources(){
   [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} sources_version directory"
   local sources_version="$1" directory="$2"
   cd "$directory"
@@ -57,19 +57,19 @@ download_sources(){
   cd ..
 }
 
-pharo_eval(){
+function pharo_eval(){
   [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} pharo_expression"
   local pharo_expression="$1"
   eval "$PHARO_CMD eval --save $pharo_expression"
 }
 
-metacello_install(){
+function metacello_install(){
   [[ $# -eq 3 ]] || die "Usage: ${FUNCNAME[0]} url baseline groups"
   local url="$1" baseline="$2" groups="$3"
   eval "$PHARO_CMD metacello install $url $baseline --groups=$groups"
 }
 
-prepare_image(){
+function prepare_image(){
   [[ $# -eq 0 ]] || die "Usage: ${FUNCNAME[0]}"
   pharo_eval 'NoChangesLog install.'
   pharo_eval 'NoPharoFilesOpener install.'
@@ -78,7 +78,7 @@ prepare_image(){
   pharo_eval 'PharoCommandLineHandler forcePreferencesOmission: true.'
 }
 
-setup(){
+function setup(){
   [[ $# -eq 4 ]] || die "Usage: ${FUNCNAME[0]} project_name project_repository project_baseline project_groups"
   local project_name="$1" project_repository="$2" project_baseline="$3" \
   project_groups="$4"
@@ -107,7 +107,7 @@ setup(){
   cd ..
 }
 
-clean(){
+function clean(){
   [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} directory_to_clean"
   local directory_to_clean="$1"
   local temp_dir="$directory_to_clean.tmp"
@@ -119,7 +119,7 @@ clean(){
   rmdir "$temp_dir"
 }
 
-generate_script(){
+function generate_script(){
   [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} directory tool_name"
   local directory="$1"
   local tool_name="$2"
@@ -142,7 +142,7 @@ generate_script(){
   chmod u+x "$script_file"
 }
 
-print_final_help(){
+function print_final_help(){
   [[ $# -eq 1 ]] || die "Usage: ${FUNCNAME[0]} tool_name"
   local tool_name="$1"
   # Help user to set-up.
@@ -153,7 +153,7 @@ print_final_help(){
   echo 'export PATH="$PATH:$JPP_HOME"'
 }
 
-build(){
+function build(){
   [[ $# -eq 4 ]] || die "Usage: ${FUNCNAME[0]} tool_name repository_url baseline groups"
   local tool_name="$1" repository_url="$2" baseline="$3" groups="$4"
   local install_directory="$tool_name"
@@ -163,7 +163,7 @@ build(){
   print_final_help "$tool_name"
 }
 
-main(){
+function main(){
   build $@
 }
 
