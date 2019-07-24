@@ -8,9 +8,10 @@ set -u
 
 # Constants --------------------------------------------------------------------
 ## Image, sources and VM
-IMAGE_VERSION="70-minimal"
-VM_VERSION="vm70"
-SOURCES_VERSION="V60"
+: ${IMAGE_VERSION:="70-minimal"}
+: ${ARCHITECTURE:="32"}
+: ${VM_VERSION:="vm70"}
+: ${SOURCES_VERSION:="V60"}
 ## URLs
 PHARO_URL="github://pharo-project/pharo:Pharo7.0/src"
 TONEL_URL="github://pharo-vcs/tonel"
@@ -33,7 +34,7 @@ download_image(){
   local image_version="$1" directory="$2"
   cd "$directory"
   set +e # Hack, there is a problem in the script downloaded, a mv call fails
-  curl "https://get.pharo.org/$image_version" | bash
+  curl "https://get.pharo.org/$ARCHITECTURE/$image_version" | bash || die "Image download failed." # Needed because sane mode is disabled.
   set -e # Back to sane mode
   cd ..
 }
@@ -42,7 +43,7 @@ download_vm(){
   [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} vm_version directory"
   local vm_version="$1" directory="$2"
   cd "$directory"
-  curl "https://get.pharo.org/$vm_version" | bash
+  curl "https://get.pharo.org/$ARCHITECTURE/$vm_version" | bash
   cd ..
 }
 
