@@ -8,7 +8,7 @@ set -u
 
 # Constants --------------------------------------------------------------------
 ## Image, sources and VM
-: ${IMAGE_VERSION:="70-minimal"}
+: ${IMAGE_VERSION:="70"}
 : ${ARCHITECTURE:="32"}
 : ${VM_VERSION:="vm70"}
 : ${SOURCES_VERSION:="V60"}
@@ -33,9 +33,11 @@ download_image(){
   [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} image_version directory"
   local image_version="$1" directory="$2"
   cd "$directory"
-  set +e # Hack, there is a problem in the script downloaded, a mv call fails
-  curl "https://get.pharo.org/$ARCHITECTURE/$image_version" | bash || die "Image download failed." # Needed because sane mode is disabled.
-  set -e # Back to sane mode
+  wget "http://files.pharo.org/image/$image_version/latest-minimal-$ARCHITECTURE.zip"
+  unzip "latest-minimal-$ARCHITECTURE.zip"
+  rm "latest-minimal-$ARCHITECTURE.zip"
+  mv $(ls *.image) "Pharo.image"
+  mv $(ls *.changes) "Pharo.changes"
   cd ..
 }
 
