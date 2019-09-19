@@ -12,6 +12,15 @@ Options:
   -p --position=<position>  The position of the overlay (top-left, top-right, bottom-left or bottom-right) [default: top-left].
 """
 
+"""
+Shell requirements:
+  - ffmpeg
+  - ffprobe
+
+Python requirements:
+  - docopt
+"""
+
 from docopt import docopt
 import os
 import json
