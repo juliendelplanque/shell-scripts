@@ -18,12 +18,13 @@ import json
 from fractions import Fraction
 
 class VideoMetadata(object):
-  def __init__(self, width, height):
+  def __init__(self, width, height, sample_aspect_ratio=Fraction(1,1)):
     self.width=width
     self.height=height
+    self.sample_aspect_ratio = sample_aspect_ratio
 
   def ratio(self):
-    return Fraction(self.width, self.height)
+    return Fraction(self.width, self.height) * self.sample_aspect_ratio
 
   def width_scale(self, scale_ratio):
     new_width = self.width*scale_ratio
@@ -32,7 +33,14 @@ class VideoMetadata(object):
   
   @staticmethod
   def from_json(json_dict):
-    return VideoMetadata(int(json_dict['width']), int(json_dict['height']))
+    if 'sample_aspect_ratio' in json_dict.keys():
+      sample_aspect_ratio = list(map(int, json_dict['sample_aspect_ratio'].split(':')))
+    else:
+      sample_aspect_ratio = 1,1
+    return VideoMetadata(
+      int(json_dict['width']),
+      int(json_dict['height']),
+      Fraction(sample_aspect_ratio[0], sample_aspect_ratio[1]))
 
 class Position(object):
   @staticmethod
@@ -111,7 +119,7 @@ def apply_ffmpeg_overlay(
   ffmpeg_cmd += background_filename
   ffmpeg_cmd += " -i "
   ffmpeg_cmd += overlay_filename
-  ffmpeg_cmd += "-filter_complex \"[1] scale="
+  ffmpeg_cmd += " -filter_complex \"[1] scale="
   ffmpeg_cmd += str(resized_overlay_meta.width)
   ffmpeg_cmd += ":"
   ffmpeg_cmd += str(resized_overlay_meta.height)
