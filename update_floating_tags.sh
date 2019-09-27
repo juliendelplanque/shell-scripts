@@ -95,7 +95,7 @@ show(){
   local release_tag="$1"
 
   # Ensure we have all info from remotes
-  echo "git fetch --all"
+  git fetch --all &> /dev/null
 
   # Loop's variable
   local floating_tag=""
@@ -121,7 +121,7 @@ generate(){
   local remote="$2"
 
   # Ensure we have all info from remotes
-  echo "git fetch --all"
+  git fetch --all &> /dev/null
 
   # Loop's variable
   local floating_tag=""
