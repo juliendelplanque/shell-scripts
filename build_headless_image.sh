@@ -6,12 +6,15 @@ set -o pipefail
 set -C
 set -u
 
-# Constants --------------------------------------------------------------------
+# Parameters -------------------------------------------------------------------
 ## Image, sources and VM
 : ${IMAGE_VERSION:="70"}
 : ${ARCHITECTURE:="32"}
 : ${VM_VERSION:="vm70"}
 : ${SOURCES_VERSION:="V60"}
+: ${VERBOSE:="false"}
+: ${MINIMAL:="minimal-"}
+# Constants --------------------------------------------------------------------
 ## URLs
 PHARO_URL="github://pharo-project/pharo:Pharo7.0/src"
 TONEL_URL="github://pharo-vcs/tonel"
@@ -29,13 +32,29 @@ function die() {
     exit 1
 }
 
+# Log what is piped to this function using the strategy chosen by user.
+function log_message(){
+  [[ $# -le 1 ]] || die "Usage: ${FUNCNAME[0]} [message_to_log]"
+
+  # If message_to_log is passed, echo it.
+  if [[ $# -eq 1 ]]; then echo "[$(date "+%Y/%m/%d-%H:%M:%S")] $1"; fi
+
+  # If verbose mode is on, log what is coming from stdin.
+  if [[ "$VERBOSE" = "true" ]]
+  then
+    cat </dev/stdin
+  else
+    cat </dev/stdin &> /dev/null
+  fi
+}
+
 function download_image(){
   [[ $# -eq 2 ]] || die "Usage: ${FUNCNAME[0]} image_version directory"
   local image_version="$1" directory="$2"
   cd "$directory"
-  wget "http://files.pharo.org/image/$image_version/latest-minimal-$ARCHITECTURE.zip"
-  unzip "latest-minimal-$ARCHITECTURE.zip"
-  rm "latest-minimal-$ARCHITECTURE.zip"
+  wget "http://files.pharo.org/image/$image_version/latest-$MINIMAL$ARCHITECTURE.zip"
+  unzip "latest-$MINIMAL$ARCHITECTURE.zip"
+  rm "latest-$MINIMAL$ARCHITECTURE.zip"
   mv $(ls *.image) "Pharo.image"
   mv $(ls *.changes) "Pharo.changes"
   cd ..
